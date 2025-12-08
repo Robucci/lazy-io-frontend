@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - LAZY.IO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-indigo-900 to-purple-800 text-white">
+    <!-- Header -->
+    <header class="bg-purple-900/50 backdrop-blur border-b border-purple-400/30">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-black text-white">LAZY<span class="text-purple-300">.io</span></h1>
+            <div class="flex items-center gap-4">
+                <span class="text-purple-200" id="userName">Chargement...</span>
+                <button onclick="handleLogout()" class="text-red-400 hover:text-red-300">Déconnexion</button>
+            </div>
+        </div>
+    </header>
+
+<!-- Navigation -->
+<div class="bg-purple-900/30 border-b border-purple-400/20">
+    <div class="container mx-auto px-4">
+        <nav class="flex gap-6 py-3">
+            <a href="dashboard.html" class="text-white font-bold border-b-2 border-purple-400 pb-3">
+                Dashboard
+            </a>
+            <a href="settings.html" class="text-purple-300 hover:text-white transition pb-3">
+                Paramètres
+            </a>
+        </nav>
+    </div>
+</div>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Welcome Beta -->
+        <div class="bg-yellow-500/20 border-2 border-yellow-400 rounded-xl p-6 mb-8">
+            <h2 class="text-2xl font-bold text-yellow-300 mb-2">🎉 Bienvenue Bêta Testeur !</h2>
+            <p class="text-yellow-200">
+                Merci de faire partie des premiers testeurs. Ton accès Pack 3 Bots est actif et totalement gratuit pendant toute la phase bêta.
+            </p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="text-4xl mb-4">⏳</div>
+            <p class="text-purple-200">Chargement de vos bots...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden bg-red-500/20 border-2 border-red-400 rounded-xl p-6 mb-8">
+            <h3 class="text-xl font-bold text-red-300 mb-2">❌ Erreur</h3>
+            <p class="text-red-200" id="errorMessage"></p>
+            <button onclick="loadDashboard()" class="mt-4 px-4 py-2 bg-red-500 hover:bg-red-400 text-white rounded-lg">
+                Réessayer
+            </button>
+        </div>
+
+        <!-- Bots Grid -->
+        <div id="botsGrid" class="hidden grid md:grid-cols-3 gap-6 mb-8">
+            <!-- Les bots seront injectés ici via JavaScript -->
+        </div>
+
+        <!-- Quick Stats -->
+        <div id="statsSection" class="hidden bg-white/10 backdrop-blur rounded-xl p-6 border border-purple-400/30">
+            <h3 class="text-xl font-bold text-white mb-4">📊 Statistiques Globales</h3>
+            <div class="grid md:grid-cols-4 gap-6">
+                <div>
+                    <div class="text-purple-200 text-sm mb-1">Performance Totale</div>
+                    <div class="text-2xl font-bold text-white" id="totalPerformance">-</div>
+                </div>
+                <div>
+                    <div class="text-purple-200 text-sm mb-1">Trades Aujourd'hui</div>
+                    <div class="text-2xl font-bold text-white" id="todayTrades">-</div>
+                </div>
+                <div>
+                    <div class="text-purple-200 text-sm mb-1">Winrate</div>
+                    <div class="text-2xl font-bold text-white" id="winrate">-</div>
+                </div>
+                <div>
+                    <div class="text-purple-200 text-sm mb-1">Profit/Loss</div>
+                    <div class="text-2xl font-bold text-white" id="profitLoss">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Beta Feedback -->
+        <div class="mt-8 bg-purple-500/20 border border-purple-400/30 rounded-xl p-6">
+            <h3 class="text-xl font-bold text-white mb-2">💬 Ton Feedback Compte !</h3>
+            <p class="text-purple-200 mb-4">
+                Rencontre un bug ? Une suggestion ? Contacte-nous directement :
+            </p>
+            <a href="mailto:beta@lazyio.xyz" 
+               class="inline-block px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold rounded-lg transition">
+                📧 Envoyer un Feedback
+            </a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        // Vérifier authentification
+        if (!requireAuth()) {
+            // requireAuth redirige automatiquement si pas authentifié
+        }
+
+        // Charger les données utilisateur
+        const userData = getUserData();
+        if (userData) {
+            document.getElementById('userName').textContent = userData.name || userData.email;
+        }
+
+        // Fonction pour obtenir le statut badge
+        function getStatusBadge(status) {
+            const badges = {
+                'active': '<span class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm font-bold">🟢 ACTIF</span>',
+                'provisioning': '<span class="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-sm font-bold">⏳ DÉMARRAGE</span>',
+                'stopped': '<span class="px-3 py-1 bg-gray-500/20 text-gray-400 rounded-full text-sm font-bold">⚪ ARRÊTÉ</span>',
+                'error': '<span class="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-sm font-bold">🔴 ERREUR</span>'
+            };
+            return badges[status] || badges['stopped'];
+        }
+
+        // Fonction pour créer une carte de bot
+        function createBotCard(bot) {
+            const performanceColor = bot.performance >= 0 ? 'text-green-400' : 'text-red-400';
+            const performanceSign = bot.performance >= 0 ? '+' : '';
+            
+            return `
+                <div class="bg-white/10 backdrop-blur rounded-xl p-6 border border-purple-400/30">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-2xl font-bold text-white">Bot ${bot.crypto}</h3>
+                        ${getStatusBadge(bot.status)}
+                    </div>
+                    
+                    <div class="space-y-3 mb-4">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-purple-200">Version :</span>
+                            <span class="text-white font-bold">${bot.bot_version === 'elite' ? 'Elite ⭐' : 'Standard'}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-purple-200">Levier :</span>
+                            <span class="text-white font-bold">${bot.leverage}x</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-purple-200">Risk/Trade :</span>
+                            <span class="text-white font-bold">${bot.risk_pct}%</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-purple-200">Allocation :</span>
+                            <span class="text-white font-bold">${bot.allocation_pct}%</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-purple-400/30 pt-4 mb-4">
+                        <div class="text-sm text-purple-200 mb-1">Performance 24h</div>
+                        <div class="text-2xl font-bold ${performanceColor}">${performanceSign}${bot.performance || '0.0'}%</div>
+                    </div>
+
+                    ${bot.status === 'active' ? `
+                        <button onclick="stopBot('${bot.id}')" 
+                                class="w-full py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition">
+                            ⏸️ Arrêter
+                        </button>
+                    ` : bot.status === 'stopped' ? `
+                        <button onclick="startBot('${bot.id}')" 
+                                class="w-full py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition">
+                            ▶️ Démarrer
+                        </button>
+                    ` : `
+                        <button disabled
+                                class="w-full py-2 bg-gray-600 text-gray-300 rounded-lg opacity-50 cursor-not-allowed">
+                            ⏳ ${bot.status === 'provisioning' ? 'Provisioning...' : 'Indisponible'}
+                        </button>
+                    `}
+                </div>
+            `;
+        }
+
+        // Fonction pour charger le dashboard
+        async function loadDashboard() {
+            const loadingState = document.getElementById('loadingState');
+            const errorState = document.getElementById('errorState');
+            const botsGrid = document.getElementById('botsGrid');
+            const statsSection = document.getElementById('statsSection');
+            
+            // Reset states
+            loadingState.classList.remove('hidden');
+            errorState.classList.add('hidden');
+            botsGrid.classList.add('hidden');
+            statsSection.classList.add('hidden');
+            
+            try {
+                // Charger les bots
+                const bots = await getUserBots();
+                
+                // Afficher les bots
+                botsGrid.innerHTML = bots.map(bot => createBotCard(bot)).join('');
+                botsGrid.classList.remove('hidden');
+                
+                // Charger les stats
+                try {
+                    const stats = await getDashboardStats();
+                    
+                    // Afficher les stats
+                    document.getElementById('totalPerformance').textContent = 
+                        `${stats.total_pnl >= 0 ? '+' : ''}${stats.total_pnl?.toFixed(2) || '0.00'}%`;
+                    document.getElementById('totalPerformance').className = 
+                        `text-2xl font-bold ${stats.total_pnl >= 0 ? 'text-green-400' : 'text-red-400'}`;
+                    
+                    document.getElementById('todayTrades').textContent = stats.total_trades || '0';
+                    document.getElementById('winrate').textContent = `${stats.winrate?.toFixed(1) || '0.0'}%`;
+                    
+                    const profitLoss = stats.net_pnl || 0;
+                    document.getElementById('profitLoss').textContent = 
+                        `${profitLoss >= 0 ? '+' : ''}$${Math.abs(profitLoss).toFixed(2)}`;
+                    document.getElementById('profitLoss').className = 
+                        `text-2xl font-bold ${profitLoss >= 0 ? 'text-green-400' : 'text-red-400'}`;
+                    
+                    statsSection.classList.remove('hidden');
+                } catch (statsError) {
+                    console.error('Error loading stats:', statsError);
+                    // Stats non critiques, on continue
+                }
+                
+                loadingState.classList.add('hidden');
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                loadingState.classList.add('hidden');
+                errorState.classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = 
+                    error.message || 'Erreur de chargement des données';
+            }
+        }
+
+        // Fonction pour démarrer un bot
+        async function startBot(botId) {
+            if (!confirm('Démarrer ce bot ?')) return;
+            
+            try {
+                await startBot(botId);
+                alert('✅ Bot démarré avec succès !');
+                loadDashboard(); // Recharger
+            } catch (error) {
+                alert('❌ Erreur : ' + error.message);
+            }
+        }
+
+        // Fonction pour arrêter un bot
+        async function stopBot(botId) {
+            if (!confirm('Arrêter ce bot ?')) return;
+            
+            try {
+                await stopBot(botId);
+                alert('✅ Bot arrêté avec succès !');
+                loadDashboard(); // Recharger
+            } catch (error) {
+                alert('❌ Erreur : ' + error.message);
+            }
+        }
+
+        // Fonction de déconnexion
+        function handleLogout() {
+            if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                logout();
+            }
+        }
+
+        // Charger le dashboard au démarrage
+        loadDashboard();
+
+        // Auto-refresh toutes les 30 secondes
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>

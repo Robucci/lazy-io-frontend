@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paramètres - LAZY.IO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-indigo-900 to-purple-800 text-white">
+    <!-- Header -->
+    <header class="bg-purple-900/50 backdrop-blur border-b border-purple-400/30">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-black text-white">LAZY<span class="text-purple-300">.io</span></h1>
+            <div class="flex items-center gap-4">
+                <a href="dashboard.html" class="text-purple-200 hover:text-white transition">← Dashboard</a>
+                <span class="text-purple-200" id="userName">Chargement...</span>
+                <button onclick="handleLogout()" class="text-red-400 hover:text-red-300">Déconnexion</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Page Title -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-white mb-2">⚙️ Paramètres des Bots</h2>
+            <p class="text-purple-200">Modifie la configuration de tes bots de trading</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="text-4xl mb-4">⏳</div>
+            <p class="text-purple-200">Chargement de vos bots...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden bg-red-500/20 border-2 border-red-400 rounded-xl p-6 mb-8">
+            <h3 class="text-xl font-bold text-red-300 mb-2">❌ Erreur</h3>
+            <p class="text-red-200" id="errorMessage"></p>
+        </div>
+
+        <!-- Success Message -->
+        <div id="successMessage" class="hidden bg-green-500/20 border-2 border-green-400 rounded-xl p-4 mb-6">
+            <p class="text-green-300 font-bold">✅ Configuration mise à jour avec succès !</p>
+        </div>
+
+        <!-- Bots List -->
+        <div id="botsList" class="hidden space-y-6">
+            <!-- Les bots seront injectés ici -->
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        // Vérifier authentification
+        if (!requireAuth()) {
+            // requireAuth redirige automatiquement
+        }
+
+        // Charger les données utilisateur
+        const userData = getUserData();
+        if (userData) {
+            document.getElementById('userName').textContent = userData.name || userData.email;
+        }
+
+        // Fonction pour créer la carte de configuration d'un bot
+function createBotConfigCard(bot) {
+    return `
+        <div class="bg-white/10 backdrop-blur rounded-xl p-6 border border-purple-400/30">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 ${getCryptoGradient(bot.crypto)} rounded-full flex items-center justify-center text-2xl">
+                        ${getCryptoSymbol(bot.crypto)}
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Bot ${bot.crypto}</h3>
+                        <span class="text-purple-300 text-sm">${bot.bot_version === 'elite' ? 'Elite ⭐' : 'Standard'}</span>
+                    </div>
+                </div>
+                <span class="px-3 py-1 ${getStatusBadgeClass(bot.status)} rounded-full text-sm font-bold">
+                    ${getStatusText(bot.status)}
+                </span>
+            </div>
+
+            <!-- Switch Crypto Section -->
+            <div class="bg-blue-500/10 border border-blue-400/30 rounded-lg p-4 mb-6">
+                <h4 class="text-blue-300 font-bold mb-3">🔄 Changer de Crypto</h4>
+                <p class="text-blue-200 text-sm mb-3">
+                    Garde ton pack ${bot.bot_version === 'elite' ? 'Elite' : 'Standard'}, change juste la crypto tradée
+                </p>
+                <div class="flex gap-3">
+                    <select id="cryptoSwitch-${bot.id}" 
+                            class="flex-1 px-4 py-2 bg-purple-900/50 border border-purple-400/30 rounded-lg text-white focus:outline-none focus:border-purple-400">
+                        <option value="BTC" ${bot.crypto === 'BTC' ? 'selected' : ''}>Bitcoin (BTC)</option>
+                        <option value="ETH" ${bot.crypto === 'ETH' ? 'selected' : ''}>Ethereum (ETH)</option>
+                        <option value="SOL" ${bot.crypto === 'SOL' ? 'selected' : ''}>Solana (SOL)</option>
+                    </select>
+                    <button onclick="switchBotCrypto('${bot.id}')"
+                            ${bot.crypto === document.getElementById('cryptoSwitch-${bot.id}')?.value ? 'disabled' : ''}
+                            class="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg transition">
+                        Switch
+                    </button>
+                </div>
+            </div>
+
+            <form onsubmit="updateBotConfig(event, '${bot.id}')" class="space-y-4">
+              
+                        <!-- Wallet Allocation -->
+                        <div>
+                            <label class="block text-purple-200 text-sm mb-2">
+                                Allocation Wallet (%) 💰
+                            </label>
+                            <input type="number" 
+                                   name="wallet_allocation_pct"
+                                   value="${bot.allocation_pct || 100}"
+                                   min="10" max="100" step="10"
+                                   class="w-full px-4 py-2 bg-purple-900/50 border border-purple-400/30 rounded-lg text-white focus:outline-none focus:border-purple-400">
+                            <p class="text-purple-300 text-xs mt-1">Pourcentage de ton wallet utilisé par ce bot</p>
+                        </div>
+
+                        <!-- Risk % -->
+                        <div>
+                            <label class="block text-purple-200 text-sm mb-2">
+                                Risk par Trade (%) 📊
+                            </label>
+                            <input type="number" 
+                                   name="risk_pct"
+                                   value="${bot.risk_pct || 7.5}"
+                                   min="1" max="20" step="0.5"
+                                   class="w-full px-4 py-2 bg-purple-900/50 border border-purple-400/30 rounded-lg text-white focus:outline-none focus:border-purple-400">
+                            <p class="text-purple-300 text-xs mt-1">Pourcentage de risque par trade</p>
+                        </div>
+
+                        <!-- Leverage -->
+                        <div>
+                            <label class="block text-purple-200 text-sm mb-2">
+                                Leverage ⚡
+                            </label>
+                            <input type="number" 
+                                   name="leverage"
+                                   value="${bot.leverage || 40}"
+                                   min="1" max="125"
+                                   class="w-full px-4 py-2 bg-purple-900/50 border border-purple-400/30 rounded-lg text-white focus:outline-none focus:border-purple-400">
+                            <p class="text-purple-300 text-xs mt-1">Effet de levier (1-125x)</p>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" 
+                                class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg transition">
+                            💾 Sauvegarder
+                        </button>
+                    </form>
+                </div>
+            `;
+        }
+
+        // Helper functions
+        function getCryptoGradient(crypto) {
+            const gradients = {
+                'BTC': 'bg-gradient-to-br from-orange-400 to-orange-500',
+                'ETH': 'bg-gradient-to-br from-blue-400 to-blue-500',
+                'SOL': 'bg-gradient-to-br from-purple-400 to-purple-500'
+            };
+            return gradients[crypto] || 'bg-gradient-to-br from-gray-400 to-gray-500';
+        }
+
+        function getCryptoSymbol(crypto) {
+            const symbols = {
+                'BTC': '₿',
+                'ETH': 'Ξ',
+                'SOL': '◎'
+            };
+            return symbols[crypto] || '?';
+        }
+
+        function getStatusBadgeClass(status) {
+            const classes = {
+                'active': 'bg-green-500/20 text-green-400',
+                'provisioning': 'bg-yellow-500/20 text-yellow-400',
+                'stopped': 'bg-gray-500/20 text-gray-400',
+                'error': 'bg-red-500/20 text-red-400'
+            };
+            return classes[status] || classes['stopped'];
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'active': '🟢 ACTIF',
+                'provisioning': '⏳ DÉMARRAGE',
+                'stopped': '⚪ ARRÊTÉ',
+                'error': '🔴 ERREUR'
+            };
+            return texts[status] || '⚪ ARRÊTÉ';
+        }
+
+        // Fonction pour charger les bots
+        async function loadBots() {
+            const loadingState = document.getElementById('loadingState');
+            const errorState = document.getElementById('errorState');
+            const botsList = document.getElementById('botsList');
+            
+            try {
+                const bots = await getUserBots();
+                
+                // Afficher les bots
+                botsList.innerHTML = bots.map(bot => createBotConfigCard(bot)).join('');
+                botsList.classList.remove('hidden');
+                loadingState.classList.add('hidden');
+                
+            } catch (error) {
+                console.error('Error loading bots:', error);
+                loadingState.classList.add('hidden');
+                errorState.classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = 
+                    error.message || 'Erreur de chargement des bots';
+            }
+        }
+
+        // Fonction pour mettre à jour la config d'un bot
+        async function updateBotConfig(event, botId) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            // Désactiver le bouton
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Sauvegarde...';
+            
+            try {
+                // Récupérer les valeurs du formulaire
+                const formData = new FormData(form);
+                const config = {
+                    wallet_allocation_pct: parseFloat(formData.get('wallet_allocation_pct')),
+                    risk_pct: parseFloat(formData.get('risk_pct')),
+                    leverage: parseInt(formData.get('leverage'))
+                };
+                
+                // Appel API pour mettre à jour
+                await fetch(`${API_BASE_URL}/bot-config/${botId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                // Afficher message de succès
+                const successMessage = document.getElementById('successMessage');
+                successMessage.classList.remove('hidden');
+                setTimeout(() => {
+                    successMessage.classList.add('hidden');
+                }, 3000);
+                
+                // Réactiver le bouton
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                
+            } catch (error) {
+                alert('❌ Erreur lors de la sauvegarde : ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+
+        // Fonction de déconnexion
+        function handleLogout() {
+            if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                logout();
+            }
+        }
+
+        // Charger les bots au démarrage
+        loadBots();
+
+// Fonction pour switcher le crypto d'un bot
+async function switchBotCrypto(botId) {
+    const selectElement = document.getElementById(`cryptoSwitch-${botId}`);
+    const newCrypto = selectElement.value;
+    
+    if (!confirm(`Êtes-vous sûr de vouloir switcher ce bot vers ${newCrypto} ?\n\nNote: Le bot devra être re-provisionné (quelques minutes).`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/bots/${botId}/switch-crypto`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({
+                new_crypto: newCrypto
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Erreur lors du switch');
+        }
+        
+        const data = await response.json();
+        
+        // Afficher message de succès
+        alert(`✅ Bot switché vers ${newCrypto} avec succès !\n\nLe bot est en cours de provisioning...`);
+        
+        // Recharger la page
+        window.location.reload();
+        
+    } catch (error) {
+        alert('❌ Erreur : ' + error.message);
+    }
+}
+    </script>
+</body>
+</html>
