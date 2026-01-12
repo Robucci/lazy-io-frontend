@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAZY.IO - Inscription Bêta Privée</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
+    <div class="container mx-auto px-4 py-12">
+        <div class="max-w-2xl mx-auto">
+            <!-- Logo -->
+            <div class="text-center mb-8">
+                <h1 class="text-6xl font-black text-white mb-2">LAZY<span class="text-blue-300">.io</span></h1>
+                <p class="text-blue-200 text-sm uppercase tracking-widest">Automated Trading Bot</p>
+            </div>
+
+            <!-- Beta Badge -->
+            <div class="text-center mb-8">
+                <div class="inline-block bg-yellow-500/20 border-2 border-yellow-400 rounded-full px-6 py-3 mb-4">
+                    <span class="text-yellow-300 font-bold">
+                        🎉 BÊTA GRATUITE - <span id="betaSlotsRemaining">9</span> places restantes
+                    </span>
+                </div>
+                <h2 class="text-3xl font-bold text-white mb-3">Rejoignez les Premiers Testeurs</h2>
+                <p class="text-xl text-blue-200">Pack 3 Bots Elite offert pendant toute la bêta</p>
+            </div>
+
+            <!-- Signup Form -->
+            <div class="bg-slate-800/60 backdrop-blur rounded-xl p-8 border border-blue-500/20">
+                <h3 class="text-2xl font-bold text-white mb-6">📝 Inscription</h3>
+                
+                <form id="betaForm" class="space-y-4">
+                    <!-- Name -->
+                    <div>
+                        <label class="block text-blue-200 text-sm mb-2">Nom complet *</label>
+                        <input type="text" id="name" required placeholder="Robin Dupont"
+                               class="w-full px-4 py-3 bg-slate-900/80 backdrop-blur border border-blue-500/30 rounded-lg text-white focus:outline-none focus:border-blue-400">
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label class="block text-blue-200 text-sm mb-2">Email *</label>
+                        <input type="email" id="email" required placeholder="robin@exemple.com"
+                               class="w-full px-4 py-3 bg-slate-900/80 backdrop-blur border border-blue-500/30 rounded-lg text-white focus:outline-none focus:border-blue-400">
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="block text-blue-200 text-sm mb-2">Mot de passe *</label>
+                        <input type="password" id="password" required minlength="8" placeholder="Min 8 caractères"
+                               class="w-full px-4 py-3 bg-slate-900/80 backdrop-blur border border-blue-500/30 rounded-lg text-white focus:outline-none focus:border-blue-400">
+                    </div>
+
+                    <div class="border-t border-blue-500/30 pt-4">
+                        <h4 class="text-white font-bold mb-2">🔗 Configuration Hyperliquid</h4>
+                        <p class="text-blue-300 text-sm mb-4">Vos clés sont chiffrées et sécurisées. LAZY.io ne peut jamais retirer vos fonds.</p>
+                    </div>
+		    <!-- Help Section -->
+<div class="bg-blue-500/10 border border-blue-400/30 rounded-lg p-4 mb-4">
+    <div class="flex items-start gap-3">
+        <div class="text-2xl">ℹ️</div>
+        <div>
+            <h4 class="text-blue-300 font-bold mb-2">Besoin d'aide pour configurer Hyperliquid ?</h4>
+            <p class="text-blue-200 text-sm mb-3">
+                Suivez notre tutoriel pas-à-pas pour créer vos clés API Hyperliquid en toute sécurité.
+            </p>
+            <a href="https://support.hyperliquid.xyz/hc/en-us/articles/23589346118173-How-to-create-an-API-wallet" 
+               target="_blank"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white rounded-lg transition text-sm font-semibold">
+                📖 Voir le tutoriel
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+</div>
+                    <!-- API Key -->
+                    <div>
+                        <label class="block text-blue-200 text-sm mb-2">Hyperliquid API Key *</label>
+                        <input type="text" id="hyperliquid_api_key" required placeholder="0x..."
+                               class="w-full px-4 py-3 bg-slate-900/80 backdrop-blur border border-blue-500/30 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-400">
+                    </div>
+
+                    <!-- API Secret -->
+                    <div>
+                        <label class="block text-blue-200 text-sm mb-2">Hyperliquid API Secret *</label>
+                        <input type="password" id="hyperliquid_api_secret" required placeholder="••••••••"
+                               class="w-full px-4 py-3 bg-slate-900/80 backdrop-blur border-b border-blue-500/30 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-400">
+                    </div>
+
+                    <!-- Wallet Address -->
+                    <div>
+                        <label class="block text-blue-200 text-sm mb-2">Adresse Wallet *</label>
+                        <input type="text" id="hyperliquid_wallet" required placeholder="0x..."
+                               class="w-full px-4 py-3 bg-slate-900/80 backdrop-blur border-b border-blue-500/30 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-400">
+                    </div>
+
+                    <!-- Private Key -->
+                    <div>
+                        <label class="block text-blue-200 text-sm mb-2">Clé Privée Wallet (EVM) 🔑 *</label>
+                        <input type="password" id="hl_private_key" required placeholder="0x..."
+                               class="w-full px-4 py-3 bg-slate-900/80 backdrop-blur border-b border-blue-500/30 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-400">
+                        <p class="text-blue-300 text-xs mt-1">⚠️ Clé privée de ton wallet (chiffrée en base)</p>
+                    </div>
+
+                    <div class="border-t border-blue-500/30 pt-4">
+                        <h4 class="text-white font-bold mb-2">⚙️ Configuration du Bot</h4>
+                    </div>
+
+<!-- Bot Tier -->
+<div>
+    <label class="block text-blue-200 text-sm mb-2">Niveau du Bot</label>
+    <select id="tier" name="tier" required
+            class="w-full px-4 py-3 bg-slate-900/80 backdrop-blur border-b border-blue-500/30 rounded-lg text-white focus:outline-none focus:border-blue-400">
+        <option value="standard">Standard</option>
+        <option value="elite" selected>Elite ⭐</option>
+    </select>
+</div>
+
+<!-- Bot Style -->
+<div>
+    <label class="block text-blue-200 text-sm mb-2">Style de Trading 🎯</label>
+    <select id="style" name="style" required
+            class="w-full px-4 py-3 bg-slate-900/80 backdrop-blur border-b border-blue-500/30 rounded-lg text-white focus:outline-none focus:border-blue-400">
+        <option value="safe">Safe (Sélectif) 🛡️</option>
+        <option value="agressif" selected>Agressif (Opportuniste) ⚡</option>
+    </select>
+</div>
+
+                    <!-- Wallet Allocation -->
+                    <div>
+                        <label class="block text-blue-200 text-sm mb-2">Allocation Wallet (%) 💰</label>
+                        <input type="number" id="wallet_allocation_pct" value="100" min="10" max="100" step="10" required
+                               class="w-full px-4 py-3 bg-slate-900/80 backdrop-blur border-b border-blue-500/30 rounded-lg text-white focus:outline-none focus:border-blue-400">
+                        <p class="text-blue-300 text-xs mt-1">% de ton wallet à utiliser</p>
+                    </div>
+
+                    <!-- Risk % -->
+<div>
+    <label class="block text-blue-200 text-sm mb-2">
+        Risk par Trade (%) 📊
+    </label>
+    <input type="number" 
+           id="risk_pct"
+           value="7.5"
+           min="0.5" max="100" step="0.5"
+           oninput="checkRiskWarning(this, 'signup')"
+           required
+           class="w-full px-4 py-2 bg-slate-900/80 backdrop-blur border-b border-blue-500/30 rounded-lg text-white focus:outline-none focus:border-blue-400">
+    <p class="text-blue-300 text-xs mt-1">Pourcentage de risque par trade (0.5% - 100%)</p>
+    <p id="risk-warning-signup" class="text-red-400 text-xs mt-1 font-bold hidden">
+        ⚠️ Attention, risque élevé !
+    </p>
+</div>
+
+                    <!-- Leverage -->
+<div>
+    <label class="block text-blue-200 text-sm mb-2">
+        Leverage
+    </label>
+    <input type="number" 
+           name="leverage"
+           id="leverage-input"
+           value="40"
+           min="1"
+           required
+           class="w-full px-4 py-2 bg-slate-900/80 backdrop-blur border-b border-blue-500/30 rounded-lg text-white focus:outline-none focus:border-blue-400">
+    <p class="text-blue-300 text-xs mt-1" id="leverage-help">
+        Max: 40x pour BTC
+    </p>
+</div>
+
+                    <!-- Error Message -->
+                    <div id="errorMessage" class="hidden bg-red-500/20 border border-red-400 text-red-300 px-4 py-3 rounded-lg text-sm"></div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submitBtn"
+                            class="w-full py-4 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold text-lg rounded-lg hover:shadow-xl transition-all">
+                        🚀 Rejoindre la Bêta Gratuite
+                    </button>
+                </form>
+
+                <!-- Links -->
+                <div class="mt-6 text-center">
+                    <p class="text-blue-200 text-sm">
+                        Déjà un compte ? 
+                        <a href="login.html" class="text-yellow-400 hover:underline font-bold">Se connecter</a>
+                    </p>
+                    <p class="text-blue-300 text-xs mt-2">
+                        <a href="https://lazyio.xyz" class="hover:underline">← Retour à l'accueil</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        // Rediriger si déjà connecté
+        redirectIfAuthenticated();
+
+        // Charger les places disponibles
+        async function loadBetaSlots() {
+            try {
+                const slots = await getBetaSlots();
+                document.getElementById('betaSlotsRemaining').textContent = slots.remaining_slots;
+                
+                if (slots.remaining_slots === 0) {
+                    const submitBtn = document.getElementById('submitBtn');
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '🔒 Bêta Complète';
+                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            } catch (error) {
+                console.error('Error loading slots:', error);
+            }
+        }
+
+        // Charger au démarrage
+        loadBetaSlots();
+
+        // Gestion du formulaire
+        document.getElementById('betaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Récupérer les données du formulaire
+            const formData = {
+                email: document.getElementById('email').value,
+                name: document.getElementById('name').value,
+                password: document.getElementById('password').value,
+                hyperliquid_api_key: document.getElementById('hyperliquid_api_key').value,
+                hyperliquid_api_secret: document.getElementById('hyperliquid_api_secret').value,
+                hyperliquid_wallet: document.getElementById('hyperliquid_wallet').value,
+                hl_private_key: document.getElementById('hl_private_key').value,
+                tier: document.getElementById('tier').value,
+                style: document.getElementById('style').value,
+                wallet_allocation_pct: parseFloat(document.getElementById('wallet_allocation_pct').value),
+                risk_pct: parseFloat(document.getElementById('risk_pct').value),
+                leverage: parseInt(document.getElementById('leverage-input').value)
+            };
+            
+            // Reset error
+            errorMessage.classList.add('hidden');
+            
+            // Désactiver le bouton
+            submitBtn.disabled = true;
+            submitBtn.textContent = '🚀 Création en cours...';
+            
+            try {
+                // Appel API register
+                const response = await registerBeta(formData);
+                
+                // Sauvegarder token et user data
+                saveAuth(response.access_token, response.user);
+                
+                // Message de succès
+                alert('🎉 Compte créé avec succès ! Tes 3 bots sont en cours de provisioning...');
+                
+                // Rediriger vers dashboard
+                window.location.href = 'dashboard.html';
+                
+            } catch (error) {
+                // Afficher erreur
+                errorMessage.textContent = error.message || 'Erreur lors de l\'inscription. Vérifie tes informations.';
+                errorMessage.classList.remove('hidden');
+                
+                // Réactiver le bouton
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🚀 Rejoindre la Bêta Gratuite';
+            }
+        });
+
+        // Fonction warning risk
+        function checkRiskWarning(input, id) {
+            const value = parseFloat(input.value);
+            const warning = document.getElementById(`risk-warning-${id}`);
+            
+            if (value > 10) {
+                warning.classList.remove('hidden');
+            } else {
+                warning.classList.add('hidden');
+            }
+        }
+
+        // Fonction max leverage par crypto
+        function getLeverageMax(crypto) {
+            const limits = {
+                'BTC': 40,
+                'ETH': 25,
+                'SOL': 20
+            };
+            return limits[crypto] || 40;
+        }
+
+        // Update leverage max quand crypto change
+        // Trouve où le crypto est sélectionné et ajoute un listener
+        // Exemple si tu as un select/radio pour choisir BTC/ETH/SOL:
+        document.querySelectorAll('input[name="crypto"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const crypto = this.value;
+                const maxLev = getLeverageMax(crypto);
+                const leverageInput = document.getElementById('leverage-input');
+                const leverageHelp = document.getElementById('leverage-help');
+                
+                leverageInput.max = maxLev;
+                leverageInput.value = Math.min(leverageInput.value, maxLev);
+                leverageHelp.textContent = `Max: ${maxLev}x pour ${crypto}`;
+            });
+        });
+    </script>
+</body>
+</html>
