@@ -3,96 +3,492 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - LAZY.IO</title>
+    <title>Dashboard v2 - LAZY.IO</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        /* Calendrier Heatmap */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            padding: 6px 4px;
+            position: relative;
+        }
+        
+        .calendar-day:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        
+        /* Zone supérieure (25%) - Mois/Jour */
+.day-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: flex-start;
+    min-height: 25%;
+    padding: 4px;
+}
+
+.day-number {
+    font-size: 12px;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.6);
+}
+               
+        /* Zone médiane (33% du milieu) - Stats */
+        .day-stats {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .day-pnl {
+            font-size: 13px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            line-height: 1;
+        }
+        
+        .day-trades {
+            font-size: 11px;
+            font-weight: 400;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            line-height: 1;
+        }
+        
+        .day-winrate {
+            font-size: 11px;
+            font-weight: 400;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            line-height: 1;
+        }
+        
+        /* Zone inférieure (25%) - Vide */
+        .day-footer {
+            min-height: 25%;
+        }
+        
+        /* Couleurs PnL*/
+.pnl-positive { 
+    background: linear-gradient(135deg, #059669 0%, #047857 100%); 
+    color: white; 
+}
+.pnl-negative { 
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); 
+    color: white; 
+}
+.pnl-neutral { 
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%); 
+    color: white; 
+}
+.pnl-empty { 
+    background: rgba(51, 65, 85, 0.4); /* Slate plus clair et transparent */
+    color: #94a3b8; 
+    border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+/* Jours du mois précédent - versions atténuées */
+.calendar-day-prev-month.pnl-positive {
+    background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
+    opacity: 0.6;
+}
+
+.calendar-day-prev-month.pnl-negative {
+    background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
+    opacity: 0.6;
+}
+
+.calendar-day-prev-month.pnl-neutral {
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+    opacity: 0.6;
+}
+
+.calendar-day-prev-month.pnl-empty {
+    background: rgba(30, 41, 59, 0.3);
+    opacity: 0.5;
+}
+
+/* Case résumé hebdomadaire */
+.weekly-summary {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 6px 4px;
+    background: rgba(51, 65, 85, 0.3);
+    border-left: 5px solid rgba(59, 130, 246, 0.3);
+    transition: transform 0.2s;
+}
+
+.weekly-summary:hover {
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.weekly-summary.positive {
+    border-left-color: #10b981;
+}
+
+.weekly-summary.negative {
+    border-left-color: #ef4444;
+}
+
+.weekly-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 25%;
+}
+
+.weekly-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.weekly-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    justify-content: center;
+}
+
+.weekly-pnl {
+    font-size: 12px;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.weekly-trades {
+    font-size: 10px;
+    font-weight: 400;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.weekly-winrate {
+    font-size: 10px;
+    font-weight: 400;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.weekly-footer {
+    min-height: 25%;
+}
+
+/* Toggle buttons */
+.toggle-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.toggle-btn.active {
+    background: rgba(59, 130, 246, 0.3);  /* Bleu */
+    border: 1px solid rgba(59, 130, 246, 0.6);
+}
+
+.toggle-btn:not(.active) {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.toggle-btn:hover:not(.active) {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+        
+        .toggle-btn:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Tooltip info */
+        .info-tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .info-tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: rgba(17, 24, 39, 0.95);
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            font-size: 12px;
+            border: 1px solid #4b5563;
+        }
+
+        .info-tooltip:hover .tooltip-text {
+            visibility: visible;
+        }
+
+.info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.3);  /* Bleu */
+    border: 1px solid rgba(59, 130, 246, 0.6);
+    font-size: 10px;
+    margin-left: 4px;
+}
+
+.calendar-day-invisible {
+    opacity: 0;
+    pointer-events: none;
+}
+    </style>
 </head>
-<body class="bg-gradient-to-br from-purple-900 via-indigo-900 to-purple-800 text-white">
+<body class="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white min-h-screen">
     <!-- Header -->
-    <header class="bg-purple-900/50 backdrop-blur border-b border-purple-400/30">
+<header class="bg-slate-900/80 backdrop-blur border-b border-blue-500/30">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-black text-white">LAZY<span class="text-purple-300">.io</span></h1>
+            <h1 class="text-2xl font-black text-white">LAZY<span class="text-blue-300">.io</span></h1>
             <div class="flex items-center gap-4">
-                <span class="text-purple-200" id="userName">Chargement...</span>
+                <span class="text-blue-200" id="userName">Chargement...</span>
                 <button onclick="handleLogout()" class="text-red-400 hover:text-red-300">Déconnexion</button>
             </div>
         </div>
     </header>
 
-<!-- Navigation -->
-<div class="bg-purple-900/30 border-b border-purple-400/20">
-    <div class="container mx-auto px-4">
-        <nav class="flex gap-6 py-3">
-            <a href="dashboard.html" class="text-white font-bold border-b-2 border-purple-400 pb-3">
-                Dashboard
-            </a>
-            <a href="settings.html" class="text-purple-300 hover:text-white transition pb-3">
-                Paramètres
-            </a>
-        </nav>
+    <!-- Navigation -->
+    <div class="bg-slate-900/50 border-b border-blue-500/20">
+        <div class="container mx-auto px-4">
+            <nav class="flex gap-6 py-3">
+                <a href="dashboard.html" class="text-white font-bold border-b-2 border-blue-400 pb-3">
+                    Dashboard
+                </a>
+                <a href="trading_bots.html" class="text-border-blue-400 hover:text-white transition pb-3">
+                    Trading Bots
+                </a>
+                <a href="compte.html" class="text-border-blue-400 hover:text-white transition pb-3">
+                    Compte
+                </a>
+            </nav>
+        </div>
     </div>
-</div>
 
+    <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
+        
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="text-4xl mb-4">⏳</div>
+            <p class="text-border-blue-400">Chargement des statistiques...</p>
+        </div>
+
         <!-- Welcome Beta -->
-        <div class="bg-yellow-500/20 border-2 border-yellow-400 rounded-xl p-6 mb-8">
-            <h2 class="text-2xl font-bold text-yellow-300 mb-2">🎉 Bienvenue Bêta Testeur !</h2>
+        <div id="betaWelcome" class="hidden bg-yellow-500/20 border-2 border-yellow-400 rounded-xl p-6 mb-8">
+            <h2 class="text-2xl font-bold text-yellow-300 mb-2">Bienvenue Bêta Testeur !</h2>
             <p class="text-yellow-200">
                 Merci de faire partie des premiers testeurs. Ton accès Pack 3 Bots est actif et totalement gratuit pendant toute la phase bêta.
             </p>
         </div>
 
-        <!-- Loading State -->
-        <div id="loadingState" class="text-center py-12">
-            <div class="text-4xl mb-4">⏳</div>
-            <p class="text-purple-200">Chargement de vos bots...</p>
+        <!-- Stats Cards -->
+        <div id="statsCards" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Balance -->
+            <div class="bg-slate-800/60 backdrop-blur rounded-xl p-6 shadow-xl border border-blue-500/20">
+                <div class="text-blue-200 text-sm mb-2 font-semibold">Balance</div>
+                <div class="text-3xl font-bold" id="balance">$0</div>
+            </div>
+            
+            <!-- PnL 24h -->
+            <div class="bg-slate-800/60 backdrop-blur rounded-xl p-6 shadow-xl border border-blue-500/20">
+                <div class="text-blue-200 text-sm mb-2 font-semibold">PnL 24h</div>
+                <div class="text-3xl font-bold" id="pnl24h">$0</div>
+                <div class="text-blue-200 text-sm mt-2" id="trades24h">0 trades</div>
+            </div>
+            
+            <!-- PnL 7j -->
+            <div class="bg-slate-800/60 backdrop-blur rounded-xl p-6 shadow-xl border border-blue-500/20">
+                <div class="text-blue-200 text-sm mb-2 font-semibold">PnL 7j</div>
+                <div class="text-3xl font-bold" id="pnl7d">$0</div>
+                <div class="text-blue-200 text-sm mt-2" id="winrate7d">0% winrate</div>
+            </div>
+            
+            <!-- PnL All Time -->
+            <div class="bg-slate-800/60 backdrop-blur rounded-xl p-6 shadow-xl border border-blue-500/20">
+                <div class="text-blue-200 text-sm mb-2 font-semibold">PnL Total</div>
+                <div class="text-3xl font-bold" id="pnlAll">$0</div>
+                <div class="text-blue-200 text-sm mt-2" id="tradesAll">0 trades</div>
+            </div>
         </div>
 
-        <!-- Error State -->
-        <div id="errorState" class="hidden bg-red-500/20 border-2 border-red-400 rounded-xl p-6 mb-8">
-            <h3 class="text-xl font-bold text-red-300 mb-2">❌ Erreur</h3>
-            <p class="text-red-200" id="errorMessage"></p>
-            <button onclick="loadDashboard()" class="mt-4 px-4 py-2 bg-red-500 hover:bg-red-400 text-white rounded-lg">
-                Réessayer
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Calendrier / Graphique PnL -->
+            <div id="mainSection" class="hidden bg-slate-800/50 backdrop-blur rounded-xl p-6 lg:col-span-2">
+                <!-- Header avec toggle et période -->
+<div class="mb-6">
+    <!-- Ligne 1 : Toggles + Navigation + Stats -->
+    <div class="flex justify-between items-center mb-3">
+        <div class="flex gap-2">
+            <button id="toggleCalendar" class="toggle-btn active" onclick="switchView('calendar')">
+                Calendrier
+            </button>
+            <button id="toggleGraph" class="toggle-btn" onclick="switchView('graph')">
+                Graphique
             </button>
         </div>
-
-        <!-- Bots Grid -->
-        <div id="botsGrid" class="hidden grid md:grid-cols-3 gap-6 mb-8">
-            <!-- Les bots seront injectés ici via JavaScript -->
+        
+        <!-- Navigation mois (visible uniquement en mode calendrier) -->
+        <div id="monthNavigation" class="flex items-center gap-3">
+            <button onclick="changeMonth(-1)" class="px-3 py-1 bg-slate-800/60 border border-blue-500/30 rounded hover:bg-slate-700/60 transition">
+                ←
+            </button>
+            <span id="currentMonthLabel" class="font-bold text-white min-w-[120px] text-center"></span>
+            <button onclick="changeMonth(1)" class="px-3 py-1 bg-slate-800/60 border border-blue-500/30 rounded hover:bg-slate-700/60 transition">
+                →
+            </button>
         </div>
+        
+        <!-- Stats du mois affiché -->
+        <div id="monthStats" class="flex gap-4 text-sm">
+            <div class="flex items-center gap-1">
+                <span class="text-gray-400">PnL:</span>
+                <span id="monthPnl" class="font-bold text-white">$0</span>
+            </div>
+            <div class="flex items-center gap-1">
+                <span class="text-gray-400">Trades:</span>
+                <span id="monthTrades" class="font-bold text-white">0</span>
+            </div>
+            <div class="flex items-center gap-1">
+                <span class="text-gray-400">WR:</span>
+                <span id="monthWinrate" class="font-bold text-white">0%</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sélecteur de période uniquement pour le graphique -->
+    <select id="periodSelector" class="bg-slate-800/60 border border-blue-500/30 rounded px-4 py-2 text-white hidden" style="color: white;">
+        <option value="1" style="color: black; background-color: white;">1 mois</option>
+        <option value="3" selected style="color: black; background-color: white;">3 mois</option>
+        <option value="6" style="color: black; background-color: white;">6 mois</option>
+        <option value="12" style="color: black; background-color: white;">1 an</option>
+        <option value="all" style="color: black; background-color: white;">All time</option>
+    </select>
+</div>
 
-        <!-- Quick Stats -->
-        <div id="statsSection" class="hidden bg-white/10 backdrop-blur rounded-xl p-6 border border-purple-400/30">
-            <h3 class="text-xl font-bold text-white mb-4">📊 Statistiques Globales</h3>
-            <div class="grid md:grid-cols-4 gap-6">
-                <div>
-                    <div class="text-purple-200 text-sm mb-1">Performance Totale</div>
-                    <div class="text-2xl font-bold text-white" id="totalPerformance">-</div>
+                <!-- Calendrier -->
+                <div id="calendarView">
+                    <!-- Jours de la semaine -->
+                    <div class="calendar-grid mb-2">
+                        <div class="text-center text-xs text-gray-400">L</div>
+                        <div class="text-center text-xs text-gray-400">M</div>
+                        <div class="text-center text-xs text-gray-400">M</div>
+                        <div class="text-center text-xs text-gray-400">J</div>
+                        <div class="text-center text-xs text-gray-400">V</div>
+                        <div class="text-center text-xs text-gray-400">S</div>
+                        <div class="text-center text-xs text-gray-400">D</div>
+                        <div class="text-center text-xs text-gray-400 font-bold">HEBDO</div>
+                    </div>
+                    
+                    <!-- Calendrier Grid -->
+                    <div id="calendarGrid" class="calendar-grid"></div>
                 </div>
-                <div>
-                    <div class="text-purple-200 text-sm mb-1">Trades Aujourd'hui</div>
-                    <div class="text-2xl font-bold text-white" id="todayTrades">-</div>
+
+                <!-- Graphique -->
+                <div id="graphView" class="hidden">
+                    <canvas id="pnlChart"></canvas>
                 </div>
-                <div>
-                    <div class="text-purple-200 text-sm mb-1">Winrate</div>
-                    <div class="text-2xl font-bold text-white" id="winrate">-</div>
-                </div>
-                <div>
-                    <div class="text-purple-200 text-sm mb-1">Profit/Loss</div>
-                    <div class="text-2xl font-bold text-white" id="profitLoss">-</div>
+            </div>
+
+            <!-- Statistiques par bot -->
+            <div id="botStatsSection" class="hidden bg-slate-800/50 backdrop-blur rounded-xl p-6">
+                <h2 class="text-lg font-bold mb-4">Statistiques par Bot</h2>
+                <div id="botStatsList" class="space-y-3"></div>
+                
+                <!-- Stats totales -->
+                <div class="mt-4 pt-4 border-t border-slate-800/500">
+                    <h3 class="font-bold mb-3">Total</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Cumul Gains</span>
+                            <span class="font-bold text-green-400" id="totalGains">$0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Cumul Pertes</span>
+                            <span class="font-bold text-red-400" id="totalLosses">$0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">
+                                PF
+                                <span class="info-tooltip">
+                                    <span class="info-icon">i</span>
+                                    <span class="tooltip-text">Profit Factor = Total Gains / Total Pertes. Un PF > 1 signifie que vous gagnez plus que vous ne perdez.</span>
+                                </span>
+                            </span>
+                            <span class="font-bold" id="totalPF">0.00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">
+                                Winrate
+                                <span class="info-tooltip">
+                                    <span class="info-icon">i</span>
+                                    <span class="tooltip-text">Winrate = (Trades Gagnants / Total Trades) × 100. Pourcentage de trades gagnants.</span>
+                                </span>
+                            </span>
+                            <span class="font-bold" id="totalWinrate">0%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">
+                                Drawdown
+                                <span class="info-tooltip">
+                                    <span class="info-icon">i</span>
+                                    <span class="tooltip-text">Drawdown = Plus grande perte depuis le plus haut. Mesure le risque maximum encouru.</span>
+                                </span>
+                            </span>
+                            <span class="font-bold text-orange-400" id="totalDD">0%</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Beta Feedback -->
-        <div class="mt-8 bg-purple-500/20 border border-purple-400/30 rounded-xl p-6">
-            <h3 class="text-xl font-bold text-white mb-2">💬 Ton Feedback Compte !</h3>
-            <p class="text-purple-200 mb-4">
+        <div id="betaFeedback" class="hidden mt-8 bg-blue-900/40 border border-blue-400/30 rounded-xl p-6">
+            <h3 class="text-xl font-bold text-white mb-2">Ton Feedback Compte !</h3>
+            <p class="text-blue-200 mb-4">
                 Rencontre un bug ? Une suggestion ? Contacte-nous directement :
             </p>
-            <a href="mailto:beta@lazyio.xyz" 
-               class="inline-block px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold rounded-lg transition">
-                📧 Envoyer un Feedback
+            <a href="mailto:robinmatteucci@gmail.com" class="inline-block px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold rounded-lg transition">
+                Envoyer un Feedback
             </a>
         </div>
     </div>
@@ -101,179 +497,550 @@
     <script src="js/auth.js"></script>
     <script src="js/api.js"></script>
     <script>
-        // Vérifier authentification
-        if (!requireAuth()) {
-            // requireAuth redirige automatiquement si pas authentifié
-        }
+        if (!requireAuth()) {}
 
-        // Charger les données utilisateur
         const userData = getUserData();
         if (userData) {
             document.getElementById('userName').textContent = userData.name || userData.email;
         }
 
-        // Fonction pour obtenir le statut badge
-        function getStatusBadge(status) {
-            const badges = {
-                'active': '<span class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm font-bold">🟢 ACTIF</span>',
-                'provisioning': '<span class="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-sm font-bold">⏳ DÉMARRAGE</span>',
-                'stopped': '<span class="px-3 py-1 bg-gray-500/20 text-gray-400 rounded-full text-sm font-bold">⚪ ARRÊTÉ</span>',
-                'error': '<span class="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-sm font-bold">🔴 ERREUR</span>'
-            };
-            return badges[status] || badges['stopped'];
+        let statsData = null;
+        let pnlChartInstance = null;
+        let currentView = 'calendar';
+        let currentMonth = new Date();
+
+        function formatMoney(amount) {
+            const sign = amount >= 0 ? '+' : '';
+            return sign + '$' + amount.toFixed(2);
         }
 
-        // Fonction pour créer une carte de bot
-        function createBotCard(bot) {
-            const performanceColor = bot.performance >= 0 ? 'text-green-400' : 'text-red-400';
-            const performanceSign = bot.performance >= 0 ? '+' : '';
+function formatPnl(amount) {
+    const abs = Math.abs(amount);
+    const sign = amount >= 0 ? '+' : '';
+    
+    // Si > 10000 : format XXk
+    if (abs >= 10000) {
+        return sign + (amount / 1000).toFixed(1) + 'k';
+    }
+    
+    // Si < 1000 : avec décimales
+    if (abs < 1000) {
+        return sign + amount.toFixed(2);
+    }
+    
+    // Entre 1000 et 10000 : sans décimales
+    return sign + amount.toFixed(0);
+}
+
+        function getPnlClass(pnl) {
+            if (pnl > 0) return 'pnl-positive';
+            if (pnl < 0) return 'pnl-negative';
+            return 'pnl-neutral';
+        }
+
+        // Switch entre calendrier et graphique
+        function switchView(view) {
+            currentView = view;
             
-            return `
-                <div class="bg-white/10 backdrop-blur rounded-xl p-6 border border-purple-400/30">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-2xl font-bold text-white">Bot ${bot.crypto}</h3>
-                        ${getStatusBadge(bot.status)}
-                    </div>
-                    
-                    <div class="space-y-3 mb-4">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-purple-200">Version :</span>
-                            <span class="text-white font-bold">${bot.bot_version === 'elite' ? 'Elite ⭐' : 'Standard'}</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-purple-200">Levier :</span>
-                            <span class="text-white font-bold">${bot.leverage}x</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-purple-200">Risk/Trade :</span>
-                            <span class="text-white font-bold">${bot.risk_pct}%</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-purple-200">Allocation :</span>
-                            <span class="text-white font-bold">${bot.allocation_pct}%</span>
-                        </div>
-                    </div>
+            if (view === 'calendar') {
+                document.getElementById('calendarView').classList.remove('hidden');
+                document.getElementById('graphView').classList.add('hidden');
+                document.getElementById('toggleCalendar').classList.add('active');
+                document.getElementById('toggleGraph').classList.remove('active');
+                document.getElementById('periodSelector').classList.add('hidden');
+                document.getElementById('monthNavigation').classList.remove('hidden');
+                updateMonthLabel();
+            } else {
+                document.getElementById('calendarView').classList.add('hidden');
+                document.getElementById('graphView').classList.remove('hidden');
+                document.getElementById('toggleCalendar').classList.remove('active');
+                document.getElementById('toggleGraph').classList.add('active');
+                document.getElementById('periodSelector').classList.remove('hidden');
+                document.getElementById('monthNavigation').classList.add('hidden');
+                
+                // Recréer le graphique avec la période actuelle
+                const period = document.getElementById('periodSelector').value;
+                createPnlChart(statsData.daily_stats, period);
+            }
+        }
 
-                    <div class="border-t border-purple-400/30 pt-4 mb-4">
-                        <div class="text-sm text-purple-200 mb-1">Performance 24h</div>
-                        <div class="text-2xl font-bold ${performanceColor}">${performanceSign}${bot.performance || '0.0'}%</div>
-                    </div>
+// Changer de mois
+function changeMonth(direction) {
+    currentMonth.setMonth(currentMonth.getMonth() + direction);
+    updateMonthLabel();
+    updateMonthStats();
+    generateCalendar(statsData.daily_stats, new Date(currentMonth));
+}
 
-                    ${bot.status === 'active' ? `
-                        <button onclick="stopBot('${bot.id}')" 
-                                class="w-full py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition">
-                            ⏸️ Arrêter
-                        </button>
-                    ` : bot.status === 'stopped' ? `
-                        <button onclick="startBot('${bot.id}')" 
-                                class="w-full py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition">
-                            ▶️ Démarrer
-                        </button>
-                    ` : `
-                        <button disabled
-                                class="w-full py-2 bg-gray-600 text-gray-300 rounded-lg opacity-50 cursor-not-allowed">
-                            ⏳ ${bot.status === 'provisioning' ? 'Provisioning...' : 'Indisponible'}
-                        </button>
-                    `}
+// Mettre à jour le label du mois
+function updateMonthLabel() {
+    const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    const label = `${monthNames[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`;
+    document.getElementById('currentMonthLabel').textContent = label;
+}
+
+// Calculer et afficher les stats du mois affiché
+function updateMonthStats() {
+    if (!statsData || !statsData.daily_stats) return;
+    
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    
+    let monthPnl = 0;
+    let monthTrades = 0;
+    let monthWinning = 0;
+    let monthLosing = 0;
+    
+    // Parcourir tous les jours du mois
+    for (const [dateStr, stats] of Object.entries(statsData.daily_stats)) {
+        const date = new Date(dateStr);
+        if (date.getFullYear() === year && date.getMonth() === month) {
+            monthPnl += stats.pnl;
+            monthTrades += stats.trades;
+            monthWinning += stats.winning_trades;
+            monthLosing += stats.losing_trades;
+        }
+    }
+    
+    const monthWinrate = (monthWinning + monthLosing) > 0 
+        ? (monthWinning / (monthWinning + monthLosing) * 100).toFixed(1)
+        : 0;
+    
+    // Afficher
+    document.getElementById('monthPnl').textContent = formatPnl(monthPnl) + ' USDC';
+    document.getElementById('monthPnl').style.color = monthPnl >= 0 ? '#10b981' : '#ef4444';
+    document.getElementById('monthTrades').textContent = monthTrades;
+    document.getElementById('monthWinrate').textContent = monthWinrate + '%';
+}
+
+// Générer le calendrier avec résumés hebdomadaires
+function generateCalendar(dailyStats, targetMonth = null) {
+    const calendarGrid = document.getElementById('calendarGrid');
+    calendarGrid.innerHTML = '';
+    
+    if (!targetMonth) {
+        targetMonth = new Date();
+    }
+    
+    const year = targetMonth.getFullYear();
+    const month = targetMonth.getMonth();
+    
+    // Premier jour du mois
+    const firstDayOfMonth = new Date(year, month, 1);
+    
+    // Trouver le lundi de la semaine du 1er jour du mois
+    let startDate = new Date(firstDayOfMonth);
+    const dayOfWeek = startDate.getDay();
+    const offset = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Offset pour commencer au lundi
+    startDate.setDate(startDate.getDate() - offset);
+    
+    // Dernier jour du mois
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+    
+    // Trouver le dimanche de la semaine du dernier jour
+    let endDate = new Date(lastDayOfMonth);
+    const lastDayOfWeek = endDate.getDay();
+    const endOffset = lastDayOfWeek === 0 ? 0 : 7 - lastDayOfWeek;
+    endDate.setDate(endDate.getDate() + endOffset);
+    
+    // Générer toutes les dates
+    const allDays = [];
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+        allDays.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    // Grouper par semaines
+    const weeks = [];
+    for (let i = 0; i < allDays.length; i += 7) {
+        weeks.push(allDays.slice(i, i + 7));
+    }
+    
+    // Générer chaque semaine
+    weeks.forEach((week, weekIndex) => {
+        let weekPnl = 0;
+        let weekTrades = 0;
+        let weekWinning = 0;
+        let weekLosing = 0;
+        
+        // Générer les 7 jours de la semaine
+        week.forEach((date) => {
+            const dateYear = date.getFullYear();
+            const dateMonth = String(date.getMonth() + 1).padStart(2, '0');
+            const dateDay = String(date.getDate()).padStart(2, '0');
+            const dateStr = `${dateYear}-${dateMonth}-${dateDay}`;
+            const dayNum = date.getDate();
+            const stats = dailyStats[dateStr];
+            
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'calendar-day';
+            
+            // Vérifier si c'est un jour du mois précédent ou suivant
+            const isPrevMonth = date.getMonth() < month || (date.getMonth() === 11 && month === 0 && date.getFullYear() < year);
+            const isNextMonth = date.getMonth() > month || (date.getMonth() === 0 && month === 11 && date.getFullYear() > year);
+            
+            if (isPrevMonth || isNextMonth) {
+                dayDiv.classList.add('calendar-day-prev-month');
+            }
+            
+            // Header avec jour
+            const header = document.createElement('div');
+            header.className = 'day-header';
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'day-number';
+            dayNumber.textContent = dayNum;
+            header.appendChild(dayNumber);
+            dayDiv.appendChild(header);
+            
+            // Stats
+            if (stats && stats.trades > 0) {
+                dayDiv.classList.add(getPnlClass(stats.pnl));
+                
+                const statsDiv = document.createElement('div');
+                statsDiv.className = 'day-stats';
+                
+                const pnlDiv = document.createElement('div');
+                pnlDiv.className = 'day-pnl';
+                pnlDiv.textContent = formatPnl(stats.pnl) + ' USDC';
+                statsDiv.appendChild(pnlDiv);
+                
+                const tradesDiv = document.createElement('div');
+                tradesDiv.className = 'day-trades';
+                tradesDiv.textContent = stats.trades + ' trade' + (stats.trades > 1 ? 's' : '');
+                statsDiv.appendChild(tradesDiv);
+                
+                const winrateDiv = document.createElement('div');
+                winrateDiv.className = 'day-winrate';
+                winrateDiv.textContent = stats.winrate.toFixed(0) + '%';
+                statsDiv.appendChild(winrateDiv);
+                
+                dayDiv.appendChild(statsDiv);
+                
+                // Accumuler pour le résumé hebdo
+                weekPnl += stats.pnl;
+                weekTrades += stats.trades;
+                weekWinning += stats.winning_trades;
+                weekLosing += stats.losing_trades;
+            } else {
+                dayDiv.classList.add('pnl-empty');
+                const statsDiv = document.createElement('div');
+                statsDiv.className = 'day-stats';
+                dayDiv.appendChild(statsDiv);
+            }
+            
+            // Footer
+            const footer = document.createElement('div');
+            footer.className = 'day-footer';
+            dayDiv.appendChild(footer);
+            
+            calendarGrid.appendChild(dayDiv);
+        });
+        
+        // Case résumé hebdomadaire
+        const weeklyDiv = document.createElement('div');
+        weeklyDiv.className = 'weekly-summary';
+        
+        if (weekPnl > 0) {
+            weeklyDiv.classList.add('positive');
+        } else if (weekPnl < 0) {
+            weeklyDiv.classList.add('negative');
+        }
+        
+// Header
+const weekHeader = document.createElement('div');
+weekHeader.className = 'weekly-header';
+const weekLabel = document.createElement('div');
+weekLabel.className = 'weekly-label';
+weekLabel.textContent = `Semaine ${weekIndex + 1}`;
+
+// 🔥 Couleur selon le PnL (neutre si pas de trades)
+if (weekTrades === 0) {
+    weekLabel.style.color = '#94a3b8'; // Gris neutre
+} else if (weekPnl >= 0) {
+    weekLabel.style.color = '#10b981'; // Vert
+} else {
+    weekLabel.style.color = '#ef4444'; // Rouge
+}
+
+weekHeader.appendChild(weekLabel);
+weeklyDiv.appendChild(weekHeader);
+        
+        // Stats
+        if (weekTrades > 0) {
+            const weekStats = document.createElement('div');
+            weekStats.className = 'weekly-stats';
+            
+            const weekPnlDiv = document.createElement('div');
+            weekPnlDiv.className = 'weekly-pnl';
+            weekPnlDiv.textContent = formatPnl(weekPnl) + ' USDC';
+            weekStats.appendChild(weekPnlDiv);
+            
+            const weekTradesDiv = document.createElement('div');
+            weekTradesDiv.className = 'weekly-trades';
+            weekTradesDiv.textContent = weekTrades + (weekTrades <= 1 ? ' trade' : ' trades');
+            weekStats.appendChild(weekTradesDiv);
+            
+            const weekWinrate = ((weekWinning / (weekWinning + weekLosing)) * 100);
+            const weekWinrateDiv = document.createElement('div');
+            weekWinrateDiv.className = 'weekly-winrate';
+            weekWinrateDiv.textContent = weekWinrate.toFixed(0) + '%';
+            weekStats.appendChild(weekWinrateDiv);
+            
+            weeklyDiv.appendChild(weekStats);
+        } else {
+            const weekStats = document.createElement('div');
+            weekStats.className = 'weekly-stats';
+            weeklyDiv.appendChild(weekStats);
+        }
+        
+        // Footer
+        const weekFooter = document.createElement('div');
+        weekFooter.className = 'weekly-footer';
+        weeklyDiv.appendChild(weekFooter);
+        
+        calendarGrid.appendChild(weeklyDiv);
+    });
+}
+
+        // Créer le graphique PnL par mois complets
+        function createPnlChart(dailyStats, numMonths = 3) {
+            const ctx = document.getElementById('pnlChart').getContext('2d');
+            
+            if (pnlChartInstance) {
+                pnlChartInstance.destroy();
+            }
+
+            // Trouver le premier trade
+            const allDates = Object.keys(dailyStats).filter(d => dailyStats[d].trades > 0).sort();
+            if (allDates.length === 0) return;
+
+            const firstTradeDate = new Date(allDates[0]);
+            let startDate = new Date(firstTradeDate);
+            startDate.setDate(1); // 1er du mois du premier trade
+
+            let endDate = new Date();
+
+            // Pour les périodes spécifiques, calculer depuis le premier trade
+            if (numMonths !== 'all') {
+                const potentialStartDate = new Date();
+                potentialStartDate.setMonth(potentialStartDate.getMonth() - numMonths + 1);
+                potentialStartDate.setDate(1);
+                
+                // Utiliser la date la plus récente entre le premier trade et la période demandée
+                if (potentialStartDate > startDate) {
+                    startDate = potentialStartDate;
+                }
+            }
+
+            const labels = [];
+            const data = [];
+            let cumulative = 0;
+
+            const currentDate = new Date(startDate);
+            while (currentDate <= endDate) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                labels.push(currentDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }));
+                
+                const stats = dailyStats[dateStr];
+                if (stats) {
+                    cumulative += stats.pnl;
+                }
+                data.push(cumulative);
+                
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            pnlChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'PnL Cumulé',
+                        data: data,
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { labels: { color: 'white' } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'PnL: $' + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { 
+                                color: 'white',
+                                callback: function(value) { return '$' + value; }
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+// Calculer les stats par bot
+async function calculateBotStats() {
+    try {
+        // Récupérer les bots
+        const botsResponse = await fetch(`${API_BASE_URL}/bots`, {
+            headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+        });
+        
+        if (!botsResponse.ok) {
+            console.error('Erreur chargement bots');
+            return;
+        }
+        
+        const bots = await botsResponse.json();
+        
+        const botStatsList = document.getElementById('botStatsList');
+        botStatsList.innerHTML = '';
+
+        let totalGains = 0;
+        let totalLosses = 0;
+        let totalWinning = 0;
+        let totalLosing = 0;
+
+        // Utiliser les stats par coin depuis l'API
+        const statsByCoin = statsData.stats_by_coin || {};
+
+        for (const bot of bots) {
+            const coinStats = statsByCoin[bot.crypto] || {
+                pnl: 0,
+                trades: 0,
+                winning_trades: 0,
+                losing_trades: 0,
+                total_gains: 0,
+                total_losses: 0,
+                profit_factor: 0,
+                winrate: 0
+            };
+
+            totalGains += coinStats.total_gains;
+            totalLosses += coinStats.total_losses;
+            totalWinning += coinStats.winning_trades;
+            totalLosing += coinStats.losing_trades;
+
+            const botCard = document.createElement('div');
+            botCard.className = 'bg-white/5 rounded-lg p-3 border border-white/10';
+            botCard.innerHTML = `
+                <div class="font-bold text-sm mb-2">Bot ${bot.crypto} ${bot.tier}</div>
+                <div class="space-y-1 text-xs">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Gains</span>
+                        <span class="font-bold text-green-400">$${coinStats.total_gains.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Pertes</span>
+                        <span class="font-bold text-red-400">$${coinStats.total_losses.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">PF</span>
+                        <span class="font-bold">${coinStats.profit_factor.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Winrate</span>
+                        <span class="font-bold">${coinStats.winrate.toFixed(1)}%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">DD</span>
+                        <span class="font-bold text-orange-400">${Math.abs(coinStats.drawdown).toFixed(1)}%</span>
+                    </div>
                 </div>
             `;
+            botStatsList.appendChild(botCard);
         }
 
-        // Fonction pour charger le dashboard
-        async function loadDashboard() {
-            const loadingState = document.getElementById('loadingState');
-            const errorState = document.getElementById('errorState');
-            const botsGrid = document.getElementById('botsGrid');
-            const statsSection = document.getElementById('statsSection');
-            
-            // Reset states
-            loadingState.classList.remove('hidden');
-            errorState.classList.add('hidden');
-            botsGrid.classList.add('hidden');
-            statsSection.classList.add('hidden');
-            
+        const totalPF = totalLosses > 0 ? (totalGains / totalLosses).toFixed(2) : totalGains > 0 ? '∞' : '0.00';
+        const totalWinrateCalc = ((totalWinning / (totalWinning + totalLosing)) * 100).toFixed(1);
+        const totalDrawdown = Math.min(...bots.map(bot => {
+            const coinStats = statsByCoin[bot.crypto] || { drawdown: 0 };
+            return coinStats.drawdown;
+        }));
+        document.getElementById('totalGains').textContent = '$' + totalGains.toFixed(2);
+        document.getElementById('totalLosses').textContent = '$' + totalLosses.toFixed(2);
+        document.getElementById('totalPF').textContent = totalPF;
+        document.getElementById('totalWinrate').textContent = totalWinrateCalc + '%';
+        document.getElementById('totalDD').textContent = Math.abs(totalDrawdown).toFixed(1) + '%';
+
+    } catch (error) {
+        console.error('Erreur calcul stats bots:', error);
+    }
+}
+
+        async function loadStats() {
             try {
-                // Charger les bots
-                const bots = await getUserBots();
+                const response = await fetch(`${API_BASE_URL}/stats/user-stats`, {
+                    headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+                });
+
+                if (!response.ok) throw new Error('Erreur chargement stats');
+
+                statsData = await response.json();
+                displayStats(statsData);
+                await calculateBotStats();
                 
-                // Afficher les bots
-                botsGrid.innerHTML = bots.map(bot => createBotCard(bot)).join('');
-                botsGrid.classList.remove('hidden');
-                
-                // Charger les stats
-                try {
-                    const stats = await getDashboardStats();
-                    
-                    // Afficher les stats
-                    document.getElementById('totalPerformance').textContent = 
-                        `${stats.total_pnl >= 0 ? '+' : ''}${stats.total_pnl?.toFixed(2) || '0.00'}%`;
-                    document.getElementById('totalPerformance').className = 
-                        `text-2xl font-bold ${stats.total_pnl >= 0 ? 'text-green-400' : 'text-red-400'}`;
-                    
-                    document.getElementById('todayTrades').textContent = stats.total_trades || '0';
-                    document.getElementById('winrate').textContent = `${stats.winrate?.toFixed(1) || '0.0'}%`;
-                    
-                    const profitLoss = stats.net_pnl || 0;
-                    document.getElementById('profitLoss').textContent = 
-                        `${profitLoss >= 0 ? '+' : ''}$${Math.abs(profitLoss).toFixed(2)}`;
-                    document.getElementById('profitLoss').className = 
-                        `text-2xl font-bold ${profitLoss >= 0 ? 'text-green-400' : 'text-red-400'}`;
-                    
-                    statsSection.classList.remove('hidden');
-                } catch (statsError) {
-                    console.error('Error loading stats:', statsError);
-                    // Stats non critiques, on continue
-                }
-                
-                loadingState.classList.add('hidden');
-                
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('statsCards').classList.remove('hidden');
+                document.getElementById('betaWelcome').classList.remove('hidden');
+                document.getElementById('mainSection').classList.remove('hidden');
+                document.getElementById('botStatsSection').classList.remove('hidden');
+                document.getElementById('betaFeedback').classList.remove('hidden');
+
             } catch (error) {
-                console.error('Error loading dashboard:', error);
-                loadingState.classList.add('hidden');
-                errorState.classList.remove('hidden');
-                document.getElementById('errorMessage').textContent = 
-                    error.message || 'Erreur de chargement des données';
+                console.error('Erreur:', error);
+                alert('Erreur lors du chargement des statistiques');
             }
         }
 
-        // Fonction pour démarrer un bot
-        async function startBot(botId) {
-            if (!confirm('Démarrer ce bot ?')) return;
+        function displayStats(data) {
+            document.getElementById('balance').textContent = '$' + data.balance.toFixed(2);
+            document.getElementById('pnl24h').textContent = formatPnl(data.stats_24h.pnl);
+            document.getElementById('trades24h').textContent = data.stats_24h.trades + ' trades';
+            document.getElementById('pnl7d').textContent = formatPnl(data.stats_7d.pnl);
+            document.getElementById('winrate7d').textContent = data.stats_7d.winrate.toFixed(1) + '% winrate';
+            document.getElementById('pnlAll').textContent = formatPnl(data.stats_all.pnl);
+            document.getElementById('tradesAll').textContent = data.stats_all.trades + ' trades';
             
-            try {
-                await startBot(botId);
-                alert('✅ Bot démarré avec succès !');
-                loadDashboard(); // Recharger
-            } catch (error) {
-                alert('❌ Erreur : ' + error.message);
-            }
+            generateCalendar(data.daily_stats, new Date());
+            updateMonthLabel();
+            updateMonthStats();
         }
 
-        // Fonction pour arrêter un bot
-        async function stopBot(botId) {
-            if (!confirm('Arrêter ce bot ?')) return;
-            
-            try {
-                await stopBot(botId);
-                alert('✅ Bot arrêté avec succès !');
-                loadDashboard(); // Recharger
-            } catch (error) {
-                alert('❌ Erreur : ' + error.message);
-            }
-        }
+// Event listener pour le sélecteur de période (graphique uniquement)
+document.getElementById('periodSelector').addEventListener('change', function() {
+    const period = this.value === 'all' ? 'all' : parseInt(this.value);
+    
+    // Le sélecteur n'affecte que le graphique maintenant
+    if (currentView === 'graph') {
+        createPnlChart(statsData.daily_stats, period);
+    }
+});
 
-        // Fonction de déconnexion
         function handleLogout() {
             if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
                 logout();
             }
         }
 
-        // Charger le dashboard au démarrage
-        loadDashboard();
-
-        // Auto-refresh toutes les 30 secondes
-        setInterval(loadDashboard, 30000);
+        loadStats();
     </script>
 </body>
 </html>
